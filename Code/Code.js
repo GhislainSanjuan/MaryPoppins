@@ -11,16 +11,16 @@
  * @customFunction
  */
 const GOOGLEMAPS_DISTANCE = (origin, destination, mode) => {
-  const { routes: [data] = [] } = Maps.newDirectionFinder()
+  let directions = Maps.newDirectionFinder()
     .setOrigin(origin)
     .setDestination(destination)
     .setMode(mode)
     .getDirections();
-  if (!data) {
+  Logger.log(directions.routes[0].legs[0].distance.value);
+  if (!directions) {
     throw new Error('No route found!');
   }
-  const { legs: [{ distance: { text: distance } } = {}] = [] } = data;
-  return distance;
+  return [directions.routes[0].legs[0].distance.value,directions.routes[0].legs[0].duration.text];
 };
 /**
  * Go over the data to add the distance 
@@ -28,13 +28,15 @@ const GOOGLEMAPS_DISTANCE = (origin, destination, mode) => {
  * @return {}
  * @customFunction
  */
-function getDrivingDistances(){
-  let NANNIES=SpreadsheetApp.getActive().getSheetByName("NANNIES")
-  let data=NANNIES.getDataRange().getValues().slice(1)
-  let dist=[]
-  data.forEach(function(t){
-    let d=GOOGLEMAPS_DISTANCE(t[1],"1 rue rené Goscinny 33320 Eysines","driving")
-    dist.push([d])
+function getDrivingDistances() {
+  let NANNIES = SpreadsheetApp.getActive().getSheetByName("NANNIES")
+  let data = NANNIES.getDataRange().getValues().slice(1)
+  let dist = []
+  data.forEach(function (t) {
+    let d = GOOGLEMAPS_DISTANCE( "1 rue rené Goscinny 33320 Eysines",t[1], Maps.DirectionFinder.Mode.WALKING)
+    dist.push([d[0]/1000,d[1]])
   })
-  MAM.getRange(2,7,dist.length,1).setValues(dist)
+  NANNIES.getRange(2, 5, dist.length, 2).setValues(dist)
 }
+
+
